@@ -89,30 +89,44 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {hasCVs && (
-            <div>
-              <h2 className="font-display font-bold text-2xl text-[#0F1226] mb-5">Top Career Matches</h2>
-              <div className="flex flex-col gap-3">
-                {cvList[0]?.matches?.slice(0, 3).map((m, i) => (
-                  <div key={i} className="card-base px-7 py-6 flex items-center justify-between">
-                    <div>
-                      <p className="font-display font-bold text-[#0F1226] text-lg mb-2">{m.predicted_career}</p>
-                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                        m.match_percentage >= 90 ? 'bg-primary text-white' :
-                        m.match_percentage >= 80 ? 'bg-[#7C3AED] text-white' :
-                        'bg-[#2563EB] text-white'
-                      }`}>
-                        {m.match_percentage}% MATCH
-                      </span>
-                    </div>
-                    <Link to="/cv-history" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
-                      View Details →
-                    </Link>
-                  </div>
-                ))}
+          {hasCVs && (() => {
+            const topAllMatches = cvList
+              .flatMap(cv => (cv.matches || []).map(m => ({ ...m, cvId: cv.id, cvFilename: cv.filename })))
+              .sort((a, b) => b.match_percentage - a.match_percentage)
+              .slice(0, 3);
+
+            return (
+              <div>
+                <h2 className="font-display font-bold text-2xl text-[#0F1226] mb-5">Top Career Matches</h2>
+                <div className="flex flex-col gap-3">
+                  {topAllMatches.map((m, i) => {
+                    const badgeCls = m.match_percentage >= 80 ? 'bg-[#DCFCE7] text-[#15803D]' :
+                                     m.match_percentage >= 60 ? 'bg-[#FEF3C7] text-[#B45309]' :
+                                                                'bg-[#FEE2E2] text-[#DC2626]';
+                    return (
+                      <div key={i} className="card-base px-7 py-6 flex items-center justify-between">
+                        <div>
+                          <p className="font-display font-bold text-[#0F1226] text-lg mb-2">{m.predicted_career}</p>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeCls}`}>
+                              {m.match_percentage}% MATCH
+                            </span>
+                            <span className="text-xs font-medium text-[#9EA3BC] flex items-center gap-1.5">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              {m.cvFilename}
+                            </span>
+                          </div>
+                        </div>
+                        <Link to={`/cv-detail/${m.cvId}`} className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
+                          View Details →
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </main>
       <Footer />

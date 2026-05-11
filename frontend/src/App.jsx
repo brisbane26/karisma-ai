@@ -7,6 +7,8 @@ import Register  from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import UploadCV  from './pages/UploadCV';
 import CVHistory from './pages/CVHistory';
+import ProfileSettings from './pages/ProfileSettings';
+import CVDetailAnalysis from './pages/CVDetailAnalysis';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -28,6 +30,8 @@ function AppRoutes() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/upload-cv" element={<ProtectedRoute><UploadCV /></ProtectedRoute>} />
         <Route path="/cv-history" element={<ProtectedRoute><CVHistory /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+        <Route path="/cv-detail/:id" element={<ProtectedRoute><CVDetailAnalysis /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </CVProvider>

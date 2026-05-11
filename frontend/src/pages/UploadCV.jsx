@@ -37,7 +37,7 @@ export default function UploadCV() {
     try {
       const result = await uploadAndAnalyze(file);
       clearInterval(iv);
-      navigate('/cv-history', { state: { highlightId: result.id } });
+      navigate(`/cv-detail/${result.id}`);
     } catch(e) { clearInterval(iv); setError(e.message); }
   };
 

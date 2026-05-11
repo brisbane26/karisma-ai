@@ -4,7 +4,7 @@ import { useCV } from '../contexts/CVContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-const matchBadge = pct => pct >= 85 ? 'bg-[#DCFCE7] text-[#15803D]' : pct >= 70 ? 'bg-[#FEF3C7] text-[#B45309]' : 'bg-[#FEE2E2] text-[#EF4444]';
+const matchBadge = pct => pct >= 80 ? 'text-[#15803D]' : pct >= 60 ? 'text-[#B45309]' : 'text-[#DC2626]';
 
 const fmtDate = d => new Intl.DateTimeFormat('en',{year:'numeric',month:'short',day:'numeric'}).format(new Date(d));
 const fmtDateShort = d => new Intl.DateTimeFormat('en',{month:'short',day:'numeric'}).format(new Date(d));
@@ -14,6 +14,7 @@ export default function CVHistory() {
   const navigate   = useNavigate();
   const stats      = getStats();
   const [deleting, setDeleting] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'DATE', direction: 'desc' });
 
   const handleDelete = async id => {
     setDeleting(id);
@@ -21,6 +22,37 @@ export default function CVHistory() {
     deleteCV(id);
     setDeleting(null);
   };
+
+  const handleSort = (key) => {
+    if (key === 'ACTION') return;
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const sortedCVs = [...cvList].sort((a, b) => {
+    let aVal, bVal;
+    if (sortConfig.key === 'FILENAME') {
+      aVal = a.filename.toLowerCase();
+      bVal = b.filename.toLowerCase();
+    } else if (sortConfig.key === 'DATE') {
+      aVal = new Date(a.uploaded_at).getTime();
+      bVal = new Date(b.uploaded_at).getTime();
+    } else if (sortConfig.key === 'TOP MATCH') {
+      aVal = a.matches?.[0]?.match_percentage || 0;
+      bVal = b.matches?.[0]?.match_percentage || 0;
+    } else if (sortConfig.key === 'SKILLS') {
+      aVal = a.analysis?.skills?.length || 0;
+      bVal = b.analysis?.skills?.length || 0;
+    } else {
+      return 0;
+    }
+
+    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   const topMatch = cvList[0]?.matches?.[0];
 
@@ -71,10 +103,6 @@ export default function CVHistory() {
           <div className="animate-fade-up">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-bold text-xl text-[#0F1226]">Upload History</h2>
-              <button className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors cursor-pointer bg-none border-none font-display">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-                Filter
-              </button>
             </div>
 
             {cvList.length === 0 ? (
@@ -90,11 +118,21 @@ export default function CVHistory() {
               <div className="card-base overflow-hidden">
                 <div className="grid grid-cols-[2fr_1fr_1.5fr_0.8fr_1.2fr] gap-4 px-6 py-3 border-b border-[#E8EAF2] bg-[#F8F9FE]">
                   {['FILENAME','DATE','TOP MATCH','SKILLS','ACTION'].map(h => (
-                    <p key={h} className="text-[11px] font-bold text-[#9EA3BC] uppercase tracking-wider">{h}</p>
+                    <div key={h} 
+                         className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 select-none transition-colors ${h !== 'ACTION' ? 'cursor-pointer hover:text-primary' : ''} ${sortConfig.key === h ? 'text-primary' : 'text-[#9EA3BC]'}`}
+                         onClick={() => handleSort(h)}>
+                      {h}
+                      {h !== 'ACTION' && (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+                             className={`transition-all ${sortConfig.key === h ? 'opacity-100' : 'opacity-0'} ${sortConfig.key === h && sortConfig.direction === 'desc' ? 'rotate-180' : ''}`}>
+                          <polyline points="18 15 12 9 6 15"/>
+                        </svg>
+                      )}
+                    </div>
                   ))}
                 </div>
 
-                {cvList.map((cv, i) => {
+                {sortedCVs.map((cv, i) => {
                   const topM = cv.matches?.[0];
                   const skills = cv.analysis?.skills?.length || 0;
                   return (
@@ -108,13 +146,13 @@ export default function CVHistory() {
                       <p className="text-sm text-[#5A5F7D]">{fmtDate(cv.uploaded_at)}</p>
                       {topM ? (
                         <div>
-                          <p className={`text-sm font-bold ${matchBadge(topM.match_percentage).split(' ')[1]}`}>{topM.match_percentage}% Match</p>
+                          <p className={`text-sm font-bold ${matchBadge(topM.match_percentage)}`}>{topM.match_percentage}% Match</p>
                           <p className="text-xs text-[#9EA3BC]">{topM.predicted_career}</p>
                         </div>
                       ) : <p className="text-sm text-[#9EA3BC]">—</p>}
                       <p className="text-sm font-semibold text-[#0F1226]">{skills}</p>
                       <div className="flex items-center gap-2">
-                        <button onClick={()=>navigate('/cv-history', { state: { viewId: cv.id } })}
+                        <button onClick={()=>navigate(`/cv-detail/${cv.id}`)}
                           className="btn-primary text-xs px-4 py-2 rounded-full">View Details</button>
                         <button onClick={()=>handleDelete(cv.id)} disabled={deleting === cv.id}
                           className="w-8 h-8 rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-all cursor-pointer border-none disabled:opacity-40">
