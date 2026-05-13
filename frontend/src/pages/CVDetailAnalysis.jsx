@@ -3,7 +3,7 @@ import { useCV } from '../contexts/CVContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CVDetailHeader from '../components/cv-detail/CVDetailHeader';
-import CVStatsGrid from '../components/cv-detail/CVStatsGrid';
+import CVSkillsCloud from '../components/cv-detail/CVSkillsCloud';
 import CareerMatchCard from '../components/cv-detail/CareerMatchCard';
 
 export default function CVDetailAnalysis() {
@@ -36,8 +36,8 @@ export default function CVDetailAnalysis() {
           {/* Header */}
           <CVDetailHeader cv={cv} />
 
-          {/* Stats */}
-          <CVStatsGrid analysis={cv.analysis} />
+          {/* Identified Skills */}
+          <CVSkillsCloud skills={cv.analysis?.skills} />
 
           {/* Career Matches */}
           <div className="animate-fade-up">

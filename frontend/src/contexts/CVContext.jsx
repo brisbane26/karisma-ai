@@ -11,9 +11,6 @@ const DEFAULT_CVS = [
     id: 'cv1', filename: 'John_Doe_Resume_v3.pdf', uploaded_at: '2026-04-28T10:00:00Z',
     analysis: {
       skills: ['React','TypeScript','Node.js','PostgreSQL','Docker','Git','CSS','HTML','REST API','Redux','Jest','Figma'],
-      experience: '2 years',
-      education: 'Bachelor of Computer Science',
-      certifications: 2,
     },
     matches: [
       { id:'m1', predicted_career:'Senior Frontend Engineer', match_percentage:92, matched_skills:['React','TypeScript','CSS','HTML','Redux','Git','Node.js','Jest'], skill_gaps:['Jest/Cypress','Web Vitals','Docker'], salary:'$5,000 - $8,000', recommendation: makeRec(['Jest/Cypress','Web Vitals','Docker']) },
@@ -25,9 +22,6 @@ const DEFAULT_CVS = [
     id: 'cv2', filename: 'UX_Portfolio_Update.pdf', uploaded_at: '2026-04-15T09:00:00Z',
     analysis: {
       skills: ['Figma','Adobe XD','Sketch','HTML','CSS','User Research','Prototyping','Wireframing','Design Systems'],
-      experience: '1 year',
-      education: 'Diploma in Visual Communication Design',
-      certifications: 1,
     },
     matches: [
       { id:'m4', predicted_career:'UI/UX Designer', match_percentage:85, matched_skills:['Figma','Adobe XD','User Research','Prototyping'], skill_gaps:['Motion Design','React','Accessibility'], salary:'$3,500 - $6,000', recommendation: makeRec(['Motion Design','React','Accessibility']) },
@@ -39,9 +33,6 @@ const DEFAULT_CVS = [
     id: 'cv3', filename: 'Old_Resume_Backup.pdf', uploaded_at: '2026-03-22T08:00:00Z',
     analysis: {
       skills: ['Python','SQL','Excel','PowerPoint','Communication','Leadership'],
-      experience: '3 years',
-      education: 'Bachelor of Information Systems',
-      certifications: 0,
     },
     matches: [
       { id:'m7', predicted_career:'Data Analyst', match_percentage:64, matched_skills:['Python','SQL','Excel'], skill_gaps:['Tableau','Power BI','Statistical Analysis'], salary:'$2,000 - $4,000', recommendation: makeRec(['Tableau','Power BI','Statistical Analysis']) },
@@ -81,9 +72,6 @@ export function CVProvider({ children }) {
       id: 'cv_' + Date.now(), filename: file.name, uploaded_at: new Date().toISOString(),
       analysis: {
         skills,
-        experience: 'Fresh Graduate',
-        education: 'Bachelor of Computer Science',
-        certifications: 1,
       },
       matches: [
         { id:'nm1', predicted_career:'Senior Frontend Engineer', match_percentage:92, matched_skills:skills.slice(0,8), skill_gaps:['Jest/Cypress','Web Vitals','Docker'], salary:'$5,000 - $8,000', recommendation: makeRec(['Jest/Cypress','Web Vitals','Docker']) },
