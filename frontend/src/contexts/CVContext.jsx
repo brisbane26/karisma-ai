@@ -30,7 +30,10 @@ export function CVProvider({ children }) {
     try {
       const formData = new FormData();
       formData.append('cv', file);
+      // Backend sekarang langsung memanggil HF Space (Model 1 + Model 2)
+      // dan mengembalikan skills + career_recommendations dalam satu response.
       const { cv } = await api.upload('/cv/upload', formData);
+      // Refresh daftar CV agar halaman detail langsung punya data
       await fetchCVs();
       return cv;
     } finally {

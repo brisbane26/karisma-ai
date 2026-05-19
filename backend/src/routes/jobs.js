@@ -4,8 +4,6 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
-// ── GET /jobs ─────────────────────────────────────────────────────────────────
-// List job listings with optional search & category filter
 router.get('/', authMiddleware, async (req, res) => {
   const { search, category, limit = 20, offset = 0 } = req.query;
 
@@ -13,8 +11,7 @@ router.get('/', authMiddleware, async (req, res) => {
     .from('Job_listings')
     .select(`
       id,
-      Title,
-      Job_Category,
+      Job,
       Min_Salary,
       Max_Salary,
       created_at,
@@ -25,12 +22,8 @@ router.get('/', authMiddleware, async (req, res) => {
     .order('created_at', { ascending: false })
     .range(Number(offset), Number(offset) + Number(limit) - 1);
 
-  if (search) {
-    query = query.ilike('Title', `%${search}%`);
-  }
-
   if (category) {
-    query = query.eq('Job_Category', category);
+    query = query.eq('Job', category);
   }
 
   const { data, error } = await query;
@@ -61,8 +54,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     .from('Job_listings')
     .select(`
       id,
-      Title,
-      Job_Category,
+      Job,
       Min_Salary,
       Max_Salary,
       created_at,
