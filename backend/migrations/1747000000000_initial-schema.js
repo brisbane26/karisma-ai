@@ -108,11 +108,7 @@ export const up = (pgm) => {
       primaryKey: true,
       default: pgm.func('gen_random_uuid()'),
     },
-    Title: {
-      type: 'varchar(255)',
-      notNull: true,
-    },
-    Job_Category: {
+    Job: {
       type: 'varchar(255)',
     },
     Min_Salary: {

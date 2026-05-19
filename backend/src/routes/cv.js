@@ -8,6 +8,38 @@ import { extractTextFromPDF } from "../utils/pdfExtractor.js";
 const router = Router();
 const BUCKET = process.env.CV_BUCKET || "cv-uploads";
 
+// ── Hugging Face Space URL ────────────────────────────────────────────────────
+const HF_API_URL =
+  process.env.HF_API_URL || "https://brisbanejrs-karisma-ai.hf.space";
+
+/**
+ * Kirim raw text ke Hugging Face Space untuk ekstraksi skill + prediksi karir.
+ * Return: { skills_extracted: string[], career_recommendations: {rank,career,score_pct}[] }
+ */
+async function callKarismaAI(rawText) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000); // 60 detik timeout
+
+  try {
+    const res = await fetch(`${HF_API_URL}/analyze-cv`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cv_text: rawText }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`HF API error ${res.status}: ${err}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 // ── POST /cv/upload ───────────────────────────────────────────────────────────
 // Uploads PDF to Supabase Storage, extracts raw text, saves CV_uploads + CV_Analysis row
 router.post(
@@ -79,21 +111,39 @@ router.post(
       return res.status(500).json({ error: "Failed to save CV record" });
     }
 
-    // 5. Create CV_Analysis record with extracted text in Skills JSON
-    //    Skills is stored as JSON — we store raw_text here so the ML model can use it.
-    //    The model will later update this with proper skill data.
-    const initialAnalysis = {
+    // 5. Panggil Karisma AI (HF Space) untuk ekstrak skill + prediksi karir
+    let aiSkills = [];
+    let aiCareers = [];
+    let aiStatus = "pending";
+
+    if (extractedText.trim()) {
+      try {
+        console.log("⏳ Memanggil Karisma AI (HF Space)...");
+        const aiResult = await callKarismaAI(extractedText);
+        aiSkills = aiResult.skills_extracted || [];
+        aiCareers = aiResult.career_recommendations || [];
+        aiStatus = "analyzed";
+        console.log(`✅ AI selesai: ${aiSkills.length} skill, ${aiCareers.length} karir`);
+      } catch (aiErr) {
+        console.error("❌ Karisma AI error:", aiErr.message);
+        aiStatus = "pending";
+      }
+    }
+
+    // 6. Simpan CV_Analysis dengan hasil AI
+    const skillsPayload = {
       raw_text: extractedText,
       num_pages: numPages,
-      skills: [], // to be filled by ML model
-      status: "pending", // pending | analyzed
+      skills: aiSkills,
+      status: aiStatus,
     };
 
     const { data: analysis, error: analysisError } = await supabase
       .from("CV_Analysis")
       .insert({
         CV_upload_id: cvUpload.id,
-        Skills: initialAnalysis,
+        Skills: skillsPayload,
+        ...(aiStatus === "analyzed" ? { analyzes_at: new Date().toISOString() } : {}),
       })
       .select()
       .single();
@@ -103,8 +153,32 @@ router.post(
       return res.status(500).json({ error: "Failed to save analysis record" });
     }
 
+    // 7. Simpan Career_Matches jika AI berhasil memprediksi
+    if (aiCareers.length > 0 && analysis?.id) {
+      const matchRows = aiCareers.map((c) => ({
+        CV_analysis_id: analysis.id,
+        Job_listing_id: null,
+        Predicted_career: c.career,
+        Match_percentage: parseFloat(c.score_pct) || 0,
+        Matched_Skills: aiSkills,
+        Skill_gaps: [],
+      }));
+
+      const { error: matchError } = await supabase
+        .from("Career_Matches")
+        .insert(matchRows);
+
+      if (matchError) {
+        console.error("Career_Matches insert error:", matchError);
+        // Non-fatal — CV & Analysis sudah tersimpan
+      }
+    }
+
     res.status(201).json({
-      message: "CV uploaded and text extracted successfully",
+      message:
+        aiStatus === "analyzed"
+          ? "CV uploaded, analyzed, and career matches saved successfully"
+          : "CV uploaded and text extracted. AI analysis pending.",
       cv: {
         id: cvUpload.id,
         filename: cvUpload.filename,
@@ -113,6 +187,9 @@ router.post(
         analysis_id: analysis.id,
         raw_text: extractedText,
         num_pages: numPages,
+        skills: aiSkills,
+        career_recommendations: aiCareers,
+        status: aiStatus,
       },
     });
   },
@@ -145,8 +222,7 @@ router.get("/", authMiddleware, async (req, res) => {
           created_at,
           Job_listings (
             id,
-            Title,
-            Job_Category,
+            Job,
             Min_Salary,
             Max_Salary
           )
@@ -178,8 +254,7 @@ router.get("/", authMiddleware, async (req, res) => {
         job: m.Job_listings
           ? {
               id: m.Job_listings.id,
-              title: m.Job_listings.Title,
-              category: m.Job_listings.Job_Category,
+              category: m.Job_listings.Job,
               min_salary: m.Job_listings.Min_Salary,
               max_salary: m.Job_listings.Max_Salary,
             }
@@ -238,8 +313,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
           created_at,
           Job_listings (
             id,
-            Title,
-            Job_Category,
+            Job,
             Min_Salary,
             Max_Salary
           )
@@ -269,8 +343,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
       job: m.Job_listings
         ? {
             id: m.Job_listings.id,
-            title: m.Job_listings.Title,
-            category: m.Job_listings.Job_Category,
+            category: m.Job_listings.Job,
             min_salary: m.Job_listings.Min_Salary,
             max_salary: m.Job_listings.Max_Salary,
           }
