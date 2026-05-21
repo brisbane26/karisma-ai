@@ -1,10 +1,7 @@
-import { Router } from 'express';
-import { supabase } from '../config/supabase.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { supabase } from '../../../config/supabase.js';
 
-const router = Router();
-
-router.get('/', authMiddleware, async (req, res) => {
+// ── GET /jobs ─────────────────────────────────────────────────────────────────
+export async function listJobs(req, res) {
   const { search, category, limit = 20, offset = 0 } = req.query;
 
   let query = supabase
@@ -44,10 +41,10 @@ router.get('/', authMiddleware, async (req, res) => {
   }));
 
   res.json({ jobs });
-});
+}
 
 // ── GET /jobs/:id ─────────────────────────────────────────────────────────────
-router.get('/:id', authMiddleware, async (req, res) => {
+export async function getJobById(req, res) {
   const { id } = req.params;
 
   const { data: job, error } = await supabase
@@ -80,10 +77,10 @@ router.get('/:id', authMiddleware, async (req, res) => {
       skills:     (job.Job_Skills || []).map(js => js.Skills).filter(Boolean),
     },
   });
-});
+}
 
-// ── GET /jobs/categories ──────────────────────────────────────────────────────
-router.get('/meta/categories', authMiddleware, async (req, res) => {
+// ── GET /jobs/meta/categories ─────────────────────────────────────────────────
+export async function getCategories(req, res) {
   const { data, error } = await supabase
     .from('Job_listings')
     .select('Job_Category')
@@ -95,6 +92,4 @@ router.get('/meta/categories', authMiddleware, async (req, res) => {
 
   const categories = [...new Set((data || []).map(d => d.Job_Category).filter(Boolean))];
   res.json({ categories });
-});
-
-export default router;
+}
