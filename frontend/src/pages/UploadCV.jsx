@@ -53,7 +53,7 @@ export default function UploadCV() {
 
           {analyzing ? (
             <div className="card-base p-10 text-center mb-6 animate-fade-in">
-              <div className="w-12 h-12 border-[3.5px] border-[#E8EAF2] border-t-primary rounded-full mx-auto mb-6" style={{animation:'spin 0.8s linear infinite'}}/>
+              <div className="w-12 h-12 border-[3.5px] border-[#E8EAF2] border-t-primary rounded-full mx-auto mb-6 animate-spin"/>
               <h3 className="font-display font-bold text-lg text-[#0F1226] mb-2">Analyzing your CV…</h3>
               <p className="text-sm text-[#5A5F7D] mb-6">Our AI is working. This may take up to 30 seconds.</p>
               <div className="flex flex-col gap-2.5 text-left max-w-[280px] mx-auto">
