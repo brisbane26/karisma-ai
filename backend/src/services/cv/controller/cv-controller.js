@@ -86,8 +86,11 @@ async function findJobByCareer(careerName) {
 
 /**
  * Helper: compute matched skills and skill gaps.
+ * Skill gaps are limited to a maximum of 5 items.
  */
 function computeSkillMatch(aiSkills, jobData) {
+  const MAX_SKILL_GAPS = 5;
+
   const dbSkills = (jobData?.Job_Skills || [])
     .map((js) => js.Skills?.Skill_name)
     .filter(Boolean);
@@ -98,9 +101,9 @@ function computeSkillMatch(aiSkills, jobData) {
   );
 
   const normalizedMatched = matchedSkills.map((s) => s.toLowerCase());
-  const skillGaps = dbSkills.filter(
-    (s) => !normalizedMatched.includes(s.toLowerCase()),
-  );
+  const skillGaps = dbSkills
+    .filter((s) => !normalizedMatched.includes(s.toLowerCase()))
+    .slice(0, MAX_SKILL_GAPS);
 
   return { matchedSkills, skillGaps };
 }
@@ -336,7 +339,7 @@ export async function listCVs(req, res) {
         predicted_career: m.Predicted_career,
         match_percentage: m.Match_percentage,
         matched_skills: m.Matched_Skills || [],
-        skill_gaps: m.Skill_gaps || [],
+        skill_gaps: (m.Skill_gaps || []).slice(0, 5),
         created_at: m.created_at,
         job: m.Job_listings
           ? {
@@ -424,7 +427,7 @@ export async function getCVById(req, res) {
       predicted_career: m.Predicted_career,
       match_percentage: m.Match_percentage,
       matched_skills: m.Matched_Skills || [],
-      skill_gaps: m.Skill_gaps || [],
+      skill_gaps: (m.Skill_gaps || []).slice(0, 5),
       created_at: m.created_at,
       job: m.Job_listings
         ? {
