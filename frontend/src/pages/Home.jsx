@@ -178,8 +178,8 @@ function AboutPoint({ icon, title, desc }) {
 const cvSteps = [
   { icon: 'file-text', label: 'Extracting PDF', sub: 'Parsed',       state: 'done'    },
   { icon: 'cpu',       label: 'Running NLP',    sub: 'Extracted',    state: 'done'    },
-  { icon: 'chart-dots',label: 'Predicting',     sub: 'In progress…', state: 'active'  },
-  { icon: 'award',     label: 'Result',         sub: 'Waiting',      state: 'pending' },
+  { icon: 'chart-dots',label: 'Predicting',     sub: 'Completed',    state: 'done'  },
+  { icon: 'award',     label: 'Result',         sub: 'In progress…',      state: 'active' },
 ];
 
 const stepDotStyle = {

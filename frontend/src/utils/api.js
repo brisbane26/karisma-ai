@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const BASE_URL = 'adequate-reverence-production-14ce.up.railway.app';
 
 function getToken() {
   return localStorage.getItem('karisma_token');

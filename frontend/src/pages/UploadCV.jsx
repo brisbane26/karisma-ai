@@ -33,7 +33,7 @@ export default function UploadCV() {
     if (!file) return setError('Pilih file CV terlebih dahulu.');
     setError('');
     let s = 0;
-    const iv = setInterval(() => { s++; setStep(s); if(s >= STEPS.length-1) clearInterval(iv); }, 600);
+    const iv = setInterval(() => { s++; setStep(s); if(s >= STEPS.length-1) clearInterval(iv); }, 3000);
     try {
       const result = await uploadAndAnalyze(file);
       clearInterval(iv);
