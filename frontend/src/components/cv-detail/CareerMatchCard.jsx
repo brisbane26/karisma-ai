@@ -13,8 +13,8 @@ function formatSalary(job, fallbackSalary) {
   const { min_salary, max_salary } = job;
   if (!min_salary && !max_salary) return null;
   const fmt = n => n >= 1_000_000
-    ? `Rp ${(n / 1_000_000).toFixed(0)}jt`
-    : `Rp ${n.toLocaleString('id-ID')}`;
+    ? `$${(n / 1_000_000).toFixed(0)}jt`
+    : `$${n.toLocaleString('id-ID')}`;
   if (min_salary && max_salary) return `${fmt(min_salary)} – ${fmt(max_salary)}`;
   return fmt(min_salary || max_salary);
 }
@@ -77,7 +77,6 @@ export default function CareerMatchCard({ match, totalSkills }) {
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-bold text-[#0F1226]">Matched Skills</p>
-              <span className="text-xs font-bold text-[#9EA3BC]">{matched_skills.length}/{totalSkills}</span>
             </div>
             {matched_skills.length > 0 ? (
               <div className="flex flex-wrap gap-2">
