@@ -7,13 +7,6 @@ dotenv.config();
 
 const app = express();
 
-// ── Fix COOP header agar Firebase popup bisa bekerja ──────────────────────────
-app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
-  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
-  next();
-});
-
 // ── Middleware ─────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: [
@@ -22,7 +15,17 @@ app.use(cors({
     "https://karisma-ai.site"
   ],
   credentials: true,
+  optionsSuccessStatus: 200 //
 }));
+
+// ── Fix COOP header agar Firebase popup bisa bekerja ──────────────────────────
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  next();
+});
+
+
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
