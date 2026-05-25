@@ -19,7 +19,7 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://karisma-ai.vercel.app",
-    "https://karisma-ai.com"
+    "https://karisma-ai.site"
   ],
   credentials: true,
 }));
