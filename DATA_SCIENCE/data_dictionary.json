@@ -1,0 +1,361 @@
+{
+  "dataset": "glints_v2_cleaned.csv",
+  "source": "Glints job platform — Indonesia",
+  "description": "Dataset lowongan kerja dari platform Glints Indonesia (+60.000 posting), setelah melalui pipeline cleaning, normalisasi salary (IDR → USD bulanan), normalisasi skill, dan feature engineering. Siap digunakan untuk analisis pasar kerja dan model rekomendasi karir.",
+  "pipeline_summary": {
+    "raw_source": "full_dataset_glints_v2.csv",
+    "steps": [
+      "Drop duplikat berdasarkan Job_Link",
+      "Impute Industry null → 'UNKNOWN'",
+      "Salary: convert ke bulanan IDR → floor outlier bawah → konversi ke USD (÷17.000)",
+      "Salary tier labeling berdasarkan bins USD/bulan",
+      "Skills canonical mapping (normalisasi variasi nama skill)",
+      "Feature engineering: experience_level, Education_Label, salary_avg, salary_range_width, skill_count, education_rank"
+    ],
+    "idr_usd_rate": 17000,
+    "salary_floor_idr": 850000,
+    "salary_max_floor_idr": 1000000
+  },
+  "hierarchy": {
+    "level_1": "Industry",
+    "level_2": "Job_Category_parent",
+    "level_3": "Job_Category"
+  },
+  "columns": [
+    {
+      "column_name": "Job_Link",
+      "category": "identifier",
+      "data_type": "string",
+      "nullable": false,
+      "description": "URL unik setiap posting lowongan kerja dari platform Glints",
+      "constraints": "Unique per baris; format URL Glints",
+      "example_values": ["https://glints.com/id/opportunities/jobs/..."]
+    },
+    {
+      "column_name": "Title",
+      "category": "raw_text",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Nama/judul posisi pekerjaan sebagaimana tercantum di posting",
+      "constraints": "Max panjang ~200 karakter",
+      "example_values": ["Software Engineer", "Marketing Staff", "Data Analyst"]
+    },
+    {
+      "column_name": "Industry",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Bidang industri perusahaan yang membuka lowongan (Level 1 hierarki). Nilai null pada data asli diisi dengan 'UNKNOWN'.",
+      "constraints": "Diisi 'UNKNOWN' jika aslinya null; Level 1 hierarki",
+      "example_values": ["Technology", "Finance", "Education", "UNKNOWN"]
+    },
+    {
+      "column_name": "Job_Category_parent",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Fungsi pekerjaan utama / kategori induk (Level 2 hierarki)",
+      "constraints": "Level 2 hierarki; tidak ada nilai null",
+      "example_values": ["Engineering", "Marketing", "Sales", "Human Resources"]
+    },
+    {
+      "column_name": "Job_Category",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Kategori pekerjaan detail (Level 3 hierarki), sub-kategori dari Job_Category_parent",
+      "constraints": "Level 3 hierarki",
+      "example_values": ["Software Engineer", "Digital Marketing", "Accounting"]
+    },
+    {
+      "column_name": "Job_Type",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Jenis kontrak kerja",
+      "constraints": "Enum tetap",
+      "allowed_values": ["FULL_TIME", "CONTRACT", "INTERNSHIP", "PART_TIME", "PROJECT_BASED"],
+      "example_values": ["FULL_TIME", "CONTRACT", "INTERNSHIP"]
+    },
+    {
+      "column_name": "Work Arrangement",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Skema lokasi kerja",
+      "constraints": "Enum tetap",
+      "allowed_values": ["ONSITE", "HYBRID", "REMOTE"],
+      "example_values": ["ONSITE", "HYBRID", "REMOTE"]
+    },
+    {
+      "column_name": "Education",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Pendidikan minimum yang disyaratkan (nilai ordinal dalam format enum)",
+      "constraints": "Enum ordinal",
+      "allowed_values": ["PRIMARY_SCHOOL", "SECONDARY_SCHOOL", "HIGH_SCHOOL", "DIPLOMA", "BACHELOR_DEGREE", "PROFESSIONAL_EDUCATION", "MASTER_DEGREE", "DOCTORATE"],
+      "example_values": ["BACHELOR_DEGREE", "HIGH_SCHOOL", "DIPLOMA"]
+    },
+    {
+      "column_name": "Experience",
+      "category": "numeric",
+      "data_type": "integer",
+      "nullable": false,
+      "description": "Pengalaman kerja minimum yang disyaratkan dalam tahun",
+      "constraints": "Nilai diskret dari set {0, 1, 3, 5, 10}",
+      "allowed_values": [0, 1, 3, 5, 10],
+      "example_values": [0, 1, 3]
+    },
+    {
+      "column_name": "Skills",
+      "category": "raw_text",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Daftar skill yang dibutuhkan dalam format comma-separated (data mentah sebelum normalisasi canonical)",
+      "constraints": "Comma-separated string; bisa sangat panjang",
+      "example_values": ["Python, SQL, Communication, Teamwork", "Canva, Content Writing, Social Media"]
+    },
+    {
+      "column_name": "Salary_Mode",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": true,
+      "description": "Mode/frekuensi pembayaran gaji asli dari posting. Null berarti posting tidak mencantumkan data salary.",
+      "constraints": "Nullable; null berarti tidak ada data salary",
+      "allowed_values": ["MONTH", "YEAR", "HOUR", "DAY", "WEEK", "PROJECT", null],
+      "example_values": ["MONTH", "YEAR", null]
+    },
+    {
+      "column_name": "salary_min_monthly",
+      "category": "salary_idr",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "IDR",
+      "description": "Gaji minimum setelah dikonversi ke satuan bulanan (IDR). Rumus konversi: MONTH×1 | YEAR÷12 | HOUR×160 | DAY×22 | WEEK×4.3",
+      "constraints": "Null jika no-salary; nilai >= 850.000 IDR jika ada",
+      "example_values": [2000000.0, 5000000.0, 8500000.0]
+    },
+    {
+      "column_name": "salary_max_monthly",
+      "category": "salary_idr",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "IDR",
+      "description": "Gaji maksimum setelah dikonversi ke satuan bulanan (IDR)",
+      "constraints": "Null jika no-salary; >= salary_min_monthly",
+      "example_values": [4000000.0, 8000000.0, 15000000.0]
+    },
+    {
+      "column_name": "salary_min_usd",
+      "category": "salary_usd",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "USD/month",
+      "description": "Gaji minimum bulanan dalam USD. Kurs: 1 USD = 17.000 IDR",
+      "constraints": "Null jika no-salary; = salary_min_monthly / 17000",
+      "example_values": [117.65, 294.12, 500.0]
+    },
+    {
+      "column_name": "salary_max_usd",
+      "category": "salary_usd",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "USD/month",
+      "description": "Gaji maksimum bulanan dalam USD. Kurs: 1 USD = 17.000 IDR",
+      "constraints": "Null jika no-salary; = salary_max_monthly / 17000; >= salary_min_usd",
+      "example_values": [235.29, 470.59, 882.35]
+    },
+    {
+      "column_name": "salary_min_jt",
+      "category": "salary_idr",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "Juta IDR/month",
+      "description": "Gaji minimum bulanan dalam satuan Juta Rupiah",
+      "constraints": "Null jika no-salary; = salary_min_monthly / 1.000.000",
+      "example_values": [2.0, 5.0, 8.5]
+    },
+    {
+      "column_name": "salary_max_jt",
+      "category": "salary_idr",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "Juta IDR/month",
+      "description": "Gaji maksimum bulanan dalam satuan Juta Rupiah",
+      "constraints": "Null jika no-salary; = salary_max_monthly / 1.000.000",
+      "example_values": [4.0, 8.0, 15.0]
+    },
+    {
+      "column_name": "salary_avg",
+      "category": "salary_usd",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "USD/month",
+      "description": "Rata-rata gaji bulanan dalam USD, digunakan sebagai nilai salary representatif utama. Identik dengan salary_avg_usd.",
+      "constraints": "Null jika no-salary; = (salary_min_usd + salary_max_usd) / 2",
+      "example_values": [176.47, 382.35, 691.18]
+    },
+    {
+      "column_name": "salary_avg_usd",
+      "category": "salary_usd",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "USD/month",
+      "description": "Rata-rata gaji bulanan dalam USD. Alias eksplisit dari salary_avg.",
+      "constraints": "Null jika no-salary; identik dengan salary_avg",
+      "example_values": [176.47, 382.35, 691.18]
+    },
+    {
+      "column_name": "salary_avg_jt",
+      "category": "salary_idr",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "Juta IDR/month",
+      "description": "Rata-rata gaji bulanan dalam satuan Juta Rupiah",
+      "constraints": "Null jika no-salary; = (salary_min_jt + salary_max_jt) / 2",
+      "example_values": [3.0, 6.5, 11.75]
+    },
+    {
+      "column_name": "salary_range_width_usd",
+      "category": "salary_usd",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "USD",
+      "description": "Selisih antara gaji maksimum dan minimum dalam USD. Indikator ruang negosiasi gaji — semakin besar semakin bisa dinegosiasi.",
+      "constraints": "Null jika no-salary; = salary_max_usd - salary_min_usd; >= 0",
+      "example_values": [58.82, 176.47, 382.35]
+    },
+    {
+      "column_name": "salary_range_width_jt",
+      "category": "salary_idr",
+      "data_type": "float",
+      "nullable": true,
+      "unit": "Juta IDR",
+      "description": "Selisih antara gaji maksimum dan minimum dalam Juta IDR. Indikator ruang negosiasi gaji.",
+      "constraints": "Null jika no-salary; = salary_max_jt - salary_min_jt; >= 0",
+      "example_values": [1.0, 3.0, 6.5]
+    },
+    {
+      "column_name": "salary_tier",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": true,
+      "description": "Label tier/bucket gaji berdasarkan salary_avg_usd untuk segmentasi pasar kerja.",
+      "constraints": "Nullable (null jika no-salary); bins: [0, 120, 300, 600, 1200, inf] USD/bulan",
+      "allowed_values": ["< $120", "$120-300", "$300-600", "$600-1200", "> $1200", null],
+      "salary_bins_usd": {
+        "< $120": "0 - 120",
+        "$120-300": "120 - 300",
+        "$300-600": "300 - 600",
+        "$600-1200": "600 - 1200",
+        "> $1200": "1200+"
+      },
+      "example_values": ["$120-300", "$300-600", "> $1200"]
+    },
+    {
+      "column_name": "has_salary",
+      "category": "boolean",
+      "data_type": "boolean",
+      "nullable": false,
+      "description": "Flag boolean — True jika posting memiliki data salary yang valid (setidaknya satu dari salary_min_usd atau salary_max_usd tidak null).",
+      "constraints": "Tidak nullable; True atau False",
+      "allowed_values": [true, false],
+      "example_values": [true, false]
+    },
+    {
+      "column_name": "experience_level",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Label kategorik level karir, di-derive dari kolom Experience. Entry Level = 0 thn; Junior = 1-3 thn; Mid Level = 4-6 thn; Senior = >6 thn.",
+      "constraints": "Enum tetap; derived dari Experience",
+      "allowed_values": ["Entry Level (0 thn)", "Junior (1-3 thn)", "Mid Level (4-6 thn)", "Senior (>6 thn)"],
+      "mapping": {
+        "0": "Entry Level (0 thn)",
+        "1-3": "Junior (1-3 thn)",
+        "4-6": "Mid Level (4-6 thn)",
+        ">6": "Senior (>6 thn)"
+      },
+      "example_values": ["Entry Level (0 thn)", "Junior (1-3 thn)"]
+    },
+    {
+      "column_name": "Education_Label",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Label pendidikan dalam Bahasa Indonesia — versi human-readable dari kolom Education.",
+      "constraints": "Enum human-readable; derived dari Education",
+      "mapping": {
+        "PRIMARY_SCHOOL": "SD",
+        "SECONDARY_SCHOOL": "SMP",
+        "HIGH_SCHOOL": "SMA/SMK",
+        "DIPLOMA": "Diploma",
+        "BACHELOR_DEGREE": "S1",
+        "PROFESSIONAL_EDUCATION": "Profesional",
+        "MASTER_DEGREE": "S2",
+        "DOCTORATE": "S3"
+      },
+      "example_values": ["S1", "SMA/SMK", "Diploma", "S2"]
+    },
+    {
+      "column_name": "Job_Type_Label",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Label tipe pekerjaan dalam Bahasa Indonesia — versi human-readable dari Job_Type.",
+      "constraints": "Enum human-readable; derived dari Job_Type",
+      "mapping": {
+        "FULL_TIME": "Full Time",
+        "CONTRACT": "Kontrak",
+        "INTERNSHIP": "Magang",
+        "PART_TIME": "Part Time",
+        "PROJECT_BASED": "Project Based"
+      },
+      "example_values": ["Full Time", "Kontrak", "Magang"]
+    },
+    {
+      "column_name": "Work_Arr_Label",
+      "category": "categorical",
+      "data_type": "string",
+      "nullable": false,
+      "description": "Label skema kerja dalam Bahasa Indonesia — versi human-readable dari Work Arrangement.",
+      "constraints": "Enum human-readable; derived dari Work Arrangement",
+      "mapping": {
+        "ONSITE": "Onsite",
+        "HYBRID": "Hybrid",
+        "REMOTE": "Remote"
+      },
+      "example_values": ["Onsite", "Remote", "Hybrid"]
+    },
+    {
+      "column_name": "skill_count",
+      "category": "numeric",
+      "data_type": "integer",
+      "nullable": false,
+      "description": "Jumlah skill yang tercantum per posting, dihitung dari split koma pada kolom Skills mentah (sebelum normalisasi canonical).",
+      "constraints": "Integer >= 0; 0 jika Skills null",
+      "example_values": [3, 5, 8, 12]
+    },
+    {
+      "column_name": "education_rank",
+      "category": "numeric",
+      "data_type": "integer",
+      "nullable": false,
+      "description": "Nilai ordinal numerik pendidikan untuk keperluan analisis korelasi dan sorting.",
+      "constraints": "Integer 1–7; derived dari Education",
+      "mapping": {
+        "PRIMARY_SCHOOL": 1,
+        "SECONDARY_SCHOOL": 2,
+        "HIGH_SCHOOL": 3,
+        "DIPLOMA": 4,
+        "BACHELOR_DEGREE": 5,
+        "PROFESSIONAL_EDUCATION": 5,
+        "MASTER_DEGREE": 6,
+        "DOCTORATE": 7
+      },
+      "allowed_values": [1, 2, 3, 4, 5, 6, 7],
+      "example_values": [5, 3, 4]
+    }
+  ]
+}
