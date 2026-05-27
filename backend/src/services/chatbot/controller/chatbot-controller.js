@@ -101,7 +101,7 @@ export async function chat(req, res) {
     const response = await chatWithRetry(contents);
 
     // FIX PENTING
-    const reply = response.text();
+    const reply = response.text;
 
     console.log("CHATBOT REPLY:");
     console.log(reply);

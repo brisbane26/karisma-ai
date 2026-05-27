@@ -109,7 +109,7 @@ Format:
     const response = await generateWithRetry(prompt);
 
     // FIX PENTING
-    const rawText = response.text();
+    const rawText = response.text || "";
 
     console.log("RAW TEXT:");
     console.log(rawText);

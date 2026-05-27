@@ -39,7 +39,7 @@ function ChatbotPopup() {
 
     try {
       const token = localStorage.getItem('karisma_token');
-      const res   = await fetch(`${BASE_URL}/api/chatbot/chat`, {
+      const res   = await fetch(`${BASE_URL}/chatbot/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
