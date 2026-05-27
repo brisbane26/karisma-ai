@@ -4,7 +4,8 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-const SYSTEM_INSTRUCTION = `You are Karisma Assistant, a friendly and helpful AI career assistant.
+const SYSTEM_INSTRUCTION = `
+You are Karisma Assistant, a friendly and helpful AI career assistant.
 
 Your responsibilities include helping university students with:
 - Writing strong and professional CVs/resumes
@@ -14,9 +15,10 @@ Your responsibilities include helping university students with:
 - Giving motivation and guidance for personal and professional development
 
 Always respond in clear, natural, and professional English.
-Keep answers concise and direct unless a detailed explanation is necessary.
+Keep answers concise and direct unless detailed explanation is necessary.
 
-Do not answer questions unrelated to careers, education, jobs, or self-development.`;
+Do not answer questions unrelated to careers, education, jobs, or self-development.
+`.trim();
 
 const MODELS = [
   "gemini-2.5-flash",
@@ -38,7 +40,7 @@ async function chatWithRetry(contents, maxRetries = 4) {
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
           temperature: 0.7,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 512,
         },
       });
 
@@ -63,8 +65,6 @@ async function chatWithRetry(contents, maxRetries = 4) {
 
       if (isRetryable && !isLast) {
         const waitMs = 4000 * (attempt + 1);
-
-        console.log(`Waiting ${waitMs / 1000}s before retry...`);
 
         await new Promise((r) => setTimeout(r, waitMs));
 
@@ -100,37 +100,19 @@ export async function chat(req, res) {
 
     const response = await chatWithRetry(contents);
 
-    if (!response.text) {
-      return res.status(500).json({
-        success: false,
-        message: "AI returned empty response.",
-      });
-    }
+    // FIX PENTING
+    const reply = response.text();
 
-    console.log("CHATBOT RESPONSE:");
-    console.log(response.text);
+    console.log("CHATBOT REPLY:");
+    console.log(reply);
 
     return res.status(200).json({
       success: true,
-      reply: response.text,
+      reply,
     });
   } catch (error) {
     console.error("===== CHATBOT ERROR =====");
     console.error(error);
-
-    const isOverloaded =
-      error?.status === 503 ||
-      error?.status === 429 ||
-      error?.message?.includes("UNAVAILABLE") ||
-      error?.message?.includes("RESOURCE_EXHAUSTED");
-
-    if (isOverloaded) {
-      return res.status(503).json({
-        success: false,
-        message:
-          "AI server is currently busy. Please try again in a few moments.",
-      });
-    }
 
     return res.status(500).json({
       success: false,
