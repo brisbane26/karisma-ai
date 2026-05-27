@@ -22,8 +22,8 @@ async function generateWithRetry(prompt, maxRetries = 4) {
         model: modelName,
         contents: prompt,
         config: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
+          temperature: 0.5,
+          maxOutputTokens: 1024,
         },
       });
 
@@ -49,8 +49,6 @@ async function generateWithRetry(prompt, maxRetries = 4) {
       if (isRetryable && !isLast) {
         const waitMs = 4000 * (attempt + 1);
 
-        console.log(`Waiting ${waitMs / 1000}s before retry...`);
-
         await new Promise((r) => setTimeout(r, waitMs));
 
         continue;
@@ -72,65 +70,46 @@ export async function generateRoadmap(req, res) {
       });
     }
 
-    const limitedSkills = skillGaps.slice(0, 4);
+    const limitedSkills = skillGaps.slice(0, 3);
 
     const skillList = limitedSkills.join(", ");
 
     const prompt = `
-You are an experienced technology career mentor.
+Return ONLY valid JSON.
 
-Create an intensive 4-week learning roadmap for a university student who wants to learn these skills from beginner level:
+Create a concise 4-week learning roadmap for these skills:
 
 ${skillList}
 
-IMPORTANT RULES:
-- Respond ONLY with valid JSON
-- Do NOT use markdown
-- Do NOT use backticks
-- Do NOT add explanations outside JSON
-- Return compact valid JSON only
-- Use double quotes for all strings
-- Do not include trailing commas
+Rules:
+- Valid JSON only
+- No markdown
+- No explanation
+- Maximum 2 tasks per week
+- Keep text short
 
-JSON format:
+Format:
 {
-  "summary": "Short motivational summary",
+  "summary": "text",
   "weeks": [
     {
       "week": 1,
-      "theme": "Week theme",
-      "goals": ["Goal 1", "Goal 2"],
+      "theme": "text",
       "tasks": [
         {
-          "day": "Monday - Tuesday",
-          "activity": "Learning activity",
-          "skill": "Skill being learned",
-          "resources": "Learning resources"
+          "day": "text",
+          "activity": "text"
         }
       ]
     }
-  ],
-  "tips": [
-    "Tip 1",
-    "Tip 2",
-    "Tip 3"
   ]
 }
 `.trim();
 
     const response = await generateWithRetry(prompt);
 
-    if (!response.text) {
-      return res.status(500).json({
-        success: false,
-        message: "AI returned empty response.",
-      });
-    }
-
-    console.log("ROADMAP RESPONSE:");
-    console.dir(response, { depth: null });
-
-    const rawText = response.text || "";
+    // FIX PENTING
+    const rawText = response.text();
 
     console.log("RAW TEXT:");
     console.log(rawText);
@@ -140,26 +119,18 @@ JSON format:
       .replace(/```/g, "")
       .trim();
 
-    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-
-    if (!jsonMatch) {
-      return res.status(500).json({
-        success: false,
-        message: "AI returned invalid JSON format.",
-      });
-    }
-
     let roadmap;
 
     try {
-      roadmap = JSON.parse(jsonMatch[0]);
+      roadmap = JSON.parse(cleanText);
     } catch (parseError) {
       console.error("JSON Parse Error:");
-      console.error(jsonMatch[0]);
+      console.error(cleanText);
 
       return res.status(500).json({
         success: false,
         message: "AI returned malformed JSON.",
+        raw: cleanText,
       });
     }
 
@@ -171,20 +142,6 @@ JSON format:
   } catch (error) {
     console.error("===== ROADMAP ERROR =====");
     console.error(error);
-
-    const isOverloaded =
-      error?.status === 503 ||
-      error?.status === 429 ||
-      error?.message?.includes("UNAVAILABLE") ||
-      error?.message?.includes("RESOURCE_EXHAUSTED");
-
-    if (isOverloaded) {
-      return res.status(503).json({
-        success: false,
-        message:
-          "AI server is currently busy. Please try again in a few moments.",
-      });
-    }
 
     return res.status(500).json({
       success: false,
