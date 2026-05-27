@@ -100,16 +100,19 @@ export async function chat(req, res) {
 
     const response = await chatWithRetry(contents);
 
-    console.log("CHATBOT RESPONSE:");
-    console.dir(response, { depth: null });
+    if (!response.text) {
+      return res.status(500).json({
+        success: false,
+        message: "AI returned empty response.",
+      });
+    }
 
-    const reply =
-      response?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Sorry, I could not generate a response.";
+    console.log("CHATBOT RESPONSE:");
+    console.log(response.text);
 
     return res.status(200).json({
       success: true,
-      reply,
+      reply: response.text,
     });
   } catch (error) {
     console.error("===== CHATBOT ERROR =====");
