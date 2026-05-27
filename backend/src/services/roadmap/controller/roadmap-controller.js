@@ -120,31 +120,46 @@ JSON format:
 
     const response = await generateWithRetry(prompt);
 
+    if (!response.text) {
+      return res.status(500).json({
+        success: false,
+        message: "AI returned empty response.",
+      });
+    }
+
     console.log("ROADMAP RESPONSE:");
     console.dir(response, { depth: null });
 
-    const rawText =
-      response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const rawText = response.text || "";
 
     console.log("RAW TEXT:");
     console.log(rawText);
 
     const cleanText = rawText
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
       .trim();
+
+    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+      return res.status(500).json({
+        success: false,
+        message: "AI returned invalid JSON format.",
+      });
+    }
 
     let roadmap;
 
     try {
-      roadmap = JSON.parse(cleanText);
+      roadmap = JSON.parse(jsonMatch[0]);
     } catch (parseError) {
       console.error("JSON Parse Error:");
-      console.error(cleanText);
+      console.error(jsonMatch[0]);
 
       return res.status(500).json({
         success: false,
-        message: "AI returned invalid JSON format.",
+        message: "AI returned malformed JSON.",
       });
     }
 
