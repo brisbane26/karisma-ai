@@ -258,14 +258,7 @@ export default function Home() {
           <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
             <div className="relative z-10 max-w-3xl mx-auto px-6 w-full text-center py-16">
 
-              <FadeUp delay={100}>
-                <div className="inline-flex items-center gap-1.5 bg-primary-light text-primary text-xs font-bold font-display px-4 py-1.5 rounded-full mb-6 tracking-wide border border-primary/10">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                  </svg>
-                  AI-POWERED CAREER GUIDANCE
-                </div>
-              </FadeUp>
+  
 
               <FadeUp delay={250}>
                 <h1
@@ -312,7 +305,7 @@ export default function Home() {
 
               {!user && (
                 <FadeUp delay={700}>
-                  <p className="text-sm text-[#9EA3BC] mt-4">
+                  <p className="text-sm text-[#5A5F7D] mt-4">
                     ✓ Free forever for students · ✓ No credit card required
                   </p>
                 </FadeUp>
