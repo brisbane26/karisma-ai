@@ -19,6 +19,10 @@ export default {
         display: ['Sora', 'sans-serif'],
         body:    ['DM Sans', 'sans-serif'],
       },
+      animation: {
+        'bounce-slow': 'bounce 2s infinite',
+       },
+
       boxShadow: {
         card:  '0 1px 3px rgba(91,79,232,0.08), 0 1px 2px rgba(0,0,0,0.04)',
         md:    '0 4px 16px rgba(91,79,232,0.10), 0 2px 8px rgba(0,0,0,0.04)',

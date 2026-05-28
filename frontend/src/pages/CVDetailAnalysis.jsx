@@ -79,8 +79,8 @@ function ChatbotPopup() {
           {/* HEADER */}
           <div className="flex items-center justify-between px-4 py-4 flex-shrink-0 bg-[#5B4FE8]">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg flex-shrink-0">
-                🤖
+              <div className="w-10 h-10 rounded-full bg-[#F0EFFE] flex items-center justify-center text-lg flex-shrink-0">
+                <img src="/logo-karisma-2.png" alt="Karisma AI" className="h-8 w-auto object-contain" />
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-sm text-white truncate">Karisma Assistant</p>
@@ -106,7 +106,7 @@ function ChatbotPopup() {
                 <div key={i} className={`flex gap-2 mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
                   {!isUser && (
                     <div className="w-7 h-7 rounded-full bg-[#F0EFFE] flex items-center justify-center text-sm flex-shrink-0">
-                      🤖
+                      <img src="/logo-karisma-2.png" alt="Karisma AI" className="h-5 w-auto object-contain" />
                     </div>
                   )}
                   <div
@@ -163,13 +163,25 @@ function ChatbotPopup() {
         </div>
       )}
 
-      {/* FLOATING BUTTON */}
-      <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed z-[9999] bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 rounded-full flex items-center justify-center text-2xl text-white shadow-xl hover:scale-110 active:scale-95 transition-all bg-[#5B4FE8] hover:bg-[#4a3fd1]"
-      >
-        {isOpen ? '✕' : '💬'}
-      </button>
+  {/* FLOATING BUTTON */}
+  <button
+    onClick={() => setIsOpen((prev) => !prev)}
+    className={`fixed z-[9999] bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 rounded-full shadow-xl hover:scale-110 active:scale-95 transition-all overflow-hidden border-2 border-[#808080] ${
+      isOpen ? 'hidden sm:flex' : 'flex'
+    }`}
+  >
+    {isOpen ? (
+      <div className="w-full h-full bg-white flex items-center justify-center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+    ) : (
+      <div className="w-full h-full bg-white flex items-center justify-center">
+        <img src="/logo-karisma-2.png" alt="Karisma AI" className="w-10 h-10 object-contain" />
+      </div>
+    )}
+  </button>
     </>
   );
 }
