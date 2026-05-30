@@ -120,3 +120,8 @@
 .marquee-left {
   animation: marqueeLeft 30s linear infinite;
 }
+
+@keyframes floatBounce {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
