@@ -59,71 +59,13 @@ DATA SCIENCE/
 │   └── README.md                        # Data dictionary format Markdown
 │
 ├── 📁 A-B_Testing/
-│   └── [PLACEHOLDER: nama file .py/.ipynb] # Script A/B Testing validasi insight dataset
+│   └── model1.ipynb                     # Script A/B Testing 
 │
-├── 📄 Laporan_Teknis_DataScience_KarismaAI_CC26PSU202.docx
-└── 📄 README.md                         # File ini
+├── 📄 Laporan_Teknis_DataScience_KarismaAI_CC26PSU202.pdf
+└── 📄 README.md                         
 ```
 
----
 
-## 🔄 Alur Pipeline
-
-```
-[Glints API - GraphQL]
-        │
-        ▼
-┌─────────────────────┐
-│   Scrapping_data/   │  glints_scrapper.py
-│   (1.008 kombinasi  │  → 6 job type × 3 work arr
-│    filter query)    │    × 7 experience × 8 education
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│     Dataset/        │  full_dataset_glints.csv
-│  (±60.000 baris,    │  (raw, 13 kolom)
-│   13 kolom mentah)  │
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│   Analysis_data/    │  glints_analysis_final.ipynb
-│  Cleaning → EDA →   │  · Normalisasi salary (IDR→USD)
-│  Feature Engineering│  · Normalisasi skill (SKILL_CANONICAL)
-│                     │  · 7 research questions
-└────────┬────────────┘
-         │
-         ├──────────────────────────────────────────┐
-         │                                          │
-         ▼                                          ▼
-┌─────────────────────┐                  ┌──────────────────────┐
-│     Dataset/        │                  │    Dataset/          │
-│ glints_nlp_ready    │                  │ glints_v2_cleaned    │
-│ .csv                │                  │ .csv                 │
-│ → AI Engineer       │                  │ → Dashboard          │
-│   (model NLP)       │                  │                      │
-└─────────────────────┘                  └──────────┬───────────┘
-                                                    │
-         ┌──────────────────────────────────────────┘
-         │
-         ├──────────────────────────────────────────┐
-         │                                          │
-         ▼                                          ▼
-┌─────────────────────┐                  ┌──────────────────────┐
-│     Dataset/        │                  │  Karisma-dashboard/  │
-│ glints_category_    │                  │  Streamlit App       │
-│ output.csv          │                  │  (live di cloud)     │
-└────────┬────────────┘                  └──────────────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│  Seeding_database/  │  seeding_skills_database.py
-│  Supabase           │  · Job_listings
-│  (PostgreSQL)       │  · Skills
-│  Production         │  · Job_Skills (many-to-many)
-└─────────────────────┘
-```
 
 ---
 
@@ -135,9 +77,9 @@ Berisi seluruh file data yang dihasilkan oleh pipeline, baik data mentah hasil s
 | File | Baris | Kolom | Keterangan |
 |---|---|---|---|
 | `full_dataset_glints.csv` | ±60.000 | 13 | Raw output scraper, belum dibersihkan |
-| `glints_nlp_ready.csv` | ±60.000 | [PLACEHOLDER] | Skills ternormalisasi, salary ter-encode, siap untuk model NLP |
-| `glints_v2_cleaned.csv` | ±60.000 | [PLACEHOLDER] | Kolom paling lengkap, label human-readable, untuk dashboard |
-| `glints_category_output.csv` | [PLACEHOLDER] | [PLACEHOLDER] | 1 baris per job category, aggregasi salary & skills |
+| `glints_nlp_ready.csv` | ±60.000 | 20 | Skills ternormalisasi, salary ter-encode, siap untuk model NLP |
+| `glints_v2_cleaned.csv` | ±60.000 | 30 | Kolom paling lengkap, label human-readable, untuk dashboard |
+| `glints_category_output.csv` | 65 | 7 | 1 baris per job category, aggregasi salary & skills |
 
 ---
 
@@ -216,19 +158,24 @@ python seeding_skills_database.py
 ### 📂 Karisma-dashboard/
 Berisi source code Streamlit EDA Dashboard yang menyajikan insight hasil analisis data pasar kerja Indonesia secara interaktif kepada publik.
 
-**Dashboard live:** [PLACEHOLDER: https://karisma-ai-eda.streamlit.app]
+**Dashboard live:** https://karisma-dashboard.streamlit.app/
 
 Fitur dashboard:
-- Overview pasar kerja (distribusi industri, job type, work arrangement)
-- Analisis skill paling diminati & skill premium
-- Distribusi dan benchmark salary per kategori pekerjaan
-- Korelasi pengalaman & pendidikan dengan kompensasi
-- Tren work arrangement (onsite / hybrid / remote)
+- Overview pasar kerja (KPI utama, ringkasan dataset, dan 7 insight)
+- Job Market (Distribusi industri, job cluster, tipe & arrangement pekerjaan)
+- Salary Analysis (Distribusi salary, perbandingan per industri, experience, pendidikan)
+- Skill Analysis (Top skills, skill premium, dan skill paling versatile)
+- Job Explorer (Filter & cari lowongan spesifik secara interaktif)
 
 **Cara menjalankan secara lokal:**
 ```bash
-pip install streamlit pandas plotly
-streamlit run [PLACEHOLDER: nama_file.py]
+python -m venv venv
+
+venv\Scripts\activate
+
+pip install -r requirements.txt
+
+streamlit run app.py
 ```
 
 ---
@@ -251,7 +198,7 @@ Berisi script pengujian A/B Testing untuk memvalidasi insight dan asumsi yang di
 
 **Cara menjalankan:**
 ```bash
-# [PLACEHOLDER: perintah untuk menjalankan script A/B Testing]
+# Run All Code IPYNB
 ```
 
 ---
@@ -283,7 +230,7 @@ python seeding_skills_database.py
 
 # 4. Jalankan dashboard
 cd ../Karisma-dashboard/
-streamlit run [PLACEHOLDER: nama_file.py]
+streamlit run app.py
 ```
 
 ---
@@ -292,9 +239,8 @@ streamlit run [PLACEHOLDER: nama_file.py]
 
 | Resource | URL |
 |---|---|
-| 🌐 Streamlit Dashboard (Live) | [PLACEHOLDER: URL Streamlit] |
-| 💾 Repository GitHub | [PLACEHOLDER: URL GitHub] |
-| 🗄️ Supabase Project | [PLACEHOLDER: URL Supabase Dashboard] |
+| 🌐 Streamlit Dashboard (Live) | https://karisma-dashboard.streamlit.app/ |
+| 💾 Repository GitHub | https://github.com/KielSitum/karisma-ai |
 | 📋 Project Plan | CC26-PSU202 — Coding Camp 2026 DBS Foundation |
 
 ---
@@ -303,9 +249,9 @@ streamlit run [PLACEHOLDER: nama_file.py]
 
 Dokumentasi lengkap seluruh proses pipeline Data Science tersedia pada file:
 
-**`Laporan_Teknis_DataScience_KarismaAI_CC26PSU202.docx`**
+**`Laporan_Teknis_DataScience_KarismaAI_CC26PSU202.pdf`**
 
-Laporan mencakup 10 bab: Pendahuluan, Metodologi, Web Scraping, Data Cleaning, EDA, File Output, Dashboard, Database Seeding, Temuan & Implikasi, dan Kesimpulan.
+Laporan mencakup : Pendahuluan, Metodologi, Web Scraping, Data Cleaning, EDA, File Output, Dashboard, Database Seeding, Temuan & Implikasi, dan Kesimpulan.
 
 ---
 
