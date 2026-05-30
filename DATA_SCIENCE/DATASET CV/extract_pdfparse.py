@@ -14,7 +14,7 @@ def extract_with_pdfminer(pdf_path):
 
 def main():
     folder_path = r"D:\DBS DICODING\KarismaAI\karisma-ai\DATA_SCIENCE\DATASET CV"
-    output_file = "raw_extraction_pdfminer.csv"
+    output_file = "raw_extraction.csv"
 
     data = []
     pdf_files = [f for f in os.listdir(folder_path) if f.endswith(".pdf")]
